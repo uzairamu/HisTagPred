@@ -94,9 +94,6 @@ HisTagPred/
 - `0` = C_terminal (C-terminal placement preferred)
 - `1` = N_terminal (N-terminal placement preferred)
 
-## Citation
-
-If you use HisTagPred in your research, please cite:
 
 ## License
 
