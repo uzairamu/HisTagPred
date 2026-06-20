@@ -124,17 +124,6 @@ mcc = matthews_corrcoef(y_true, y_pred)
 # Expected: MCC ≈ 0.168
 ```
 
----
-
-## Citation
-
-If you use TargetTrackHisTag in your research, please cite:
-
-```
-Ashraf MU, Muazzam, Khan RH. TargetTrackHisTag: an experimental benchmark reveals
-a significant but modest sequence-encoded signal for His-tag placement preference.
-Bioinformatics Advances, 2026. [DOI to be added upon publication]
-```
 
 ---
 
