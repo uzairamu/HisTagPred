@@ -2,9 +2,6 @@
 
 **TargetTrackHisTag: an experimental benchmark reveals a significant but modest sequence-encoded signal for His-tag placement preference**
 
-Muhammad Uzair Ashraf, Muazzam, and Rizwan Hasan Khan  
-Interdisciplinary Biotechnology Unit, Aligarh Muslim University, Aligarh, India
-
 ---
 
 ## Overview
@@ -144,7 +141,7 @@ Bioinformatics Advances, 2026. [DOI to be added upon publication]
 ## Data Availability
 
 - **This repository:** Dataset, audit results, LOOCV predictions, manuscript source
-- **Zenodo (DOI: [ZENODO_DOI]):** ESM-2 embeddings, labels, full analysis outputs
+- **Zenodo (DOI: https://doi.org/10.5281/zenodo.20773740):** ESM-2 embeddings, labels, full analysis outputs
 
 ---
 
