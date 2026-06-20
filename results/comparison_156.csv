@@ -1,0 +1,8 @@
+label,n,mcc
+ESM-2 LogReg (n=156),96,0.18754070335443587
+ESM-2 LinearSVM (n=156),96,0.06251356778481196
+AA composition n=101 [balanced],62,0.062
+AA composition LogReg (n=156),96,0.04181210050035454
+ESM-2 LogReg n=101 [balanced],62,0.015
+ESM-2 LinearSVM n=101 [balanced],62,0.0
+Handcrafted features n=101 [balanced],62,-0.065

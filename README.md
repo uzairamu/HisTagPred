@@ -1,104 +1,161 @@
-# HisTagPred
+# HisTagPred / TargetTrackHisTag
 
-**Sequence-based prediction of optimal His-tag placement using structure-informed machine learning**
+**TargetTrackHisTag: an experimental benchmark reveals a significant but modest sequence-encoded signal for His-tag placement preference**
 
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+Muhammad Uzair Ashraf, Muazzam, and Rizwan Hasan Khan  
+Interdisciplinary Biotechnology Unit, Aligarh Muslim University, Aligarh, India
+
+---
 
 ## Overview
 
-HisTagPred predicts whether N-terminal or C-terminal His-tag placement is preferred for a given protein sequence, using terminus-specific ESM-2 protein language model embeddings and an XGBoost classifier trained on computationally derived structural perturbation labels.
+This repository contains the dataset, results, and manuscript files for TargetTrackHisTag — the first machine-readable benchmark of experimentally derived bilateral His-tag placement outcomes, curated from the Northeast Structural Genomics Consortium (NESG) TargetTrack archive.
 
-![Pipeline](figures/pipeline.png)
+**Primary result:** Full-sequence ESM-2 (650M) embeddings with logistic regression achieved MCC = 0.168 (balanced accuracy = 0.583, permutation p = 0.0498, n = 156) against experimental labels — the first statistically significant sequence-based predictive signal for His-tag placement preference reported against an experimentally derived benchmark.
 
-## Key Results
-
-| Metric | 5-fold CV | LOOO (cross-organism) |
-|--------|-----------|----------------------|
-| MCC | 0.199 ± 0.030 | 0.108 (mean) |
-| ROC-AUC | 0.634 ± 0.018 | 0.586 (mean) |
-| Accuracy | 0.610 ± 0.014 | 0.568 (mean) |
-
-## Method
-
-1. **Dataset**: 1,567 non-redundant proteins from 5 organisms (UniProt Swiss-Prot, CD-HIT 40%)
-2. **Labelling**: ESMFold structure predictions for native, N-tagged, and C-tagged variants; terminal pLDDT drop used as placement tolerance proxy
-3. **Features**: ESM-2 650M terminus-specific embeddings (first/last 15 residues, 2,560 dims total)
-4. **Model**: XGBoost classifier with stratified 5-fold CV
-
-## Installation
-
-```bash
-git clone https://github.com/YOUR_USERNAME/HisTagPred.git
-cd HisTagPred
-pip install -r requirements.txt
-```
-
-## Quick Start
-
-### Predict placement for a single sequence
-```bash
-python scripts/predict.py --sequence MKTAYIAKQRSTLVWFVKALDMQSTYRPWE
-```
-
-### Predict for a FASTA file
-```bash
-python scripts/predict.py --fasta my_proteins.fasta --output predictions.csv
-```
-
-### Predict for a CSV file
-```bash
-python scripts/predict.py --csv data/my_proteins.csv --seq_col sequence --output results.csv
-```
-
-### Re-train the model
-```bash
-python scripts/train.py --embeddings X_esm_float32.npy --labels y_labels.npy
-```
-
-### Extract ESM-2 embeddings
-```bash
-python scripts/extract_embeddings.py --input data/final_dataset.csv --output X_esm_float32.npy
-```
+---
 
 ## Repository Structure
 
+```
 HisTagPred/
 ├── data/
-│   ├── final_dataset.csv          # 1,567 proteins with labels
-│   └── combined_with_rmsd.csv     # Full pre-CD-HIT dataset with RMSD
-├── models/
-│   ├── xgboost_final.pkl          # Trained XGBoost model
-│   └── scaler_final.pkl           # Fitted StandardScaler
-├── notebooks/
-│   ├── 01_dataset_construction.ipynb
-│   ├── 02_esmfold_labelling.ipynb
-│   ├── 03_esm2_embeddings.ipynb
-│   ├── 04_model_training.ipynb
-│   └── 05_evaluation.ipynb
-├── scripts/
-│   ├── predict.py
-│   ├── train.py
-│   └── extract_embeddings.py
-└── figures/
-└── pipeline.png
+│   ├── experimental_156_clean.csv     # Core benchmark dataset (156 proteins)
+│   └── target_ids_156.csv             # TargetTrack target identifiers
+├── results/
+│   ├── permutation_156.csv            # 1,000-permutation null MCC distribution
+│   ├── per_protein_predictions.csv    # Per-protein LOOCV predictions
+│   ├── comparison_156.csv             # Method comparison summary
+│   ├── fixed_window_analysis.csv      # Pre-specified length window results
+│   ├── length_bin_methodB.csv         # Quartile length bin results
+│   ├── sliding_window_methodB.csv     # Sliding window MCC analysis
+│   ├── corrected_length_analysis.csv  # Median split analysis
+│   └── extreme_bin_analysis.csv       # Extreme quartile analysis
+├── audit_results/
+│   ├── audit_a_tag_patterns_156.csv   # Tag pattern verification
+│   ├── audit_b_confidence_156.csv     # Label confidence scores
+│   ├── audit_c_properties_156.csv     # Per-protein physicochemical features
+│   └── audit_c_results_156.csv        # Audit C statistical results
+├── benchmark/
+│   └── terminator_results.csv         # Terminator comparison (28 proteins)
+├── manuscript/
+│   ├── main.tex                       # LaTeX manuscript source
+│   └── references.bib                 # Bibliography
+├── figures/
+│   ├── Figure1_confusion_matrix_v3.png
+│   ├── Figure2_pipeline.png
+│   ├── Figure3_comparison_v3.png
+│   ├── Figure4_audits.png
+│   └── Figure5_length_confidence.png
+└── README.md
+```
 
-## Data
+---
 
-| File | Description | Rows |
-|------|-------------|------|
-| `final_dataset.csv` | CD-HIT filtered, labelled proteins | 1,567 |
-| `combined_with_rmsd.csv` | Pre-filtering dataset with local RMSD | 1,984 |
+## Dataset
 
-### Label encoding
-- `0` = C_terminal (C-terminal placement preferred)
-- `1` = N_terminal (N-terminal placement preferred)
+### experimental_156_clean.csv
+The core TargetTrackHisTag benchmark. 156 proteins with experimentally recorded bilateral His-tag placement outcomes, curated from the NESG TargetTrack XML archive (97,418 His-tag construct entries → 804 bilateral candidates → 156 after alignment-based validation at ≥85% coverage).
 
+| Column | Description |
+|--------|-------------|
+| target_id | NESG TargetTrack identifier |
+| winner | Experimental preference: N or C |
+| sequence_clean | Tag-stripped protein sequence |
+| seq_len | Sequence length (aa) |
+| n_score | Maximum pipeline progression score (N-terminal constructs) |
+| c_score | Maximum pipeline progression score (C-terminal constructs) |
+| coverage | Alignment coverage between N and C construct sequences |
+
+**Class distribution:** 108 C-winners (69.2%), 48 N-winners (30.8%)
+
+### ESM-2 Embeddings
+Pre-computed ESM-2 (650M) full-sequence embeddings (`X_exp_156_esm.npy`, shape: 156×1280) and labels (`y_exp_156.npy`) are deposited at Zenodo (DOI: [ZENODO_DOI]) due to file size.
+
+---
+
+## Key Results
+
+| Method | n | MCC | Balanced Acc | p (permutation) |
+|--------|---|-----|--------------|-----------------|
+| ESM-2 LogReg, full dataset (primary) | 156 | **0.168** | 0.583 | **0.0498** |
+| ESM-2 LogReg, undersampled | 96 | 0.188 | 0.594 | 0.084 |
+| Handcrafted terminal features | 62 | −0.065 | — | — |
+| ESMFold pLDDT pseudo-labels (XGBoost) | 28 | −0.225 | — | — |
+| ESMFold pLDDT drop (direct) | 27 | −0.243 | — | — |
+
+---
+
+## Reproducing the Primary Result
+
+Analysis was performed in Python 3.10 on Google Colab (A100 GPU for ESM-2 embedding extraction, CPU for LOOCV).
+
+**Dependencies:**
+```bash
+pip install fair-esm torch scikit-learn xgboost scipy numpy pandas matplotlib biopython
+```
+
+**Core pipeline (pseudocode):**
+```python
+import esm, torch
+import numpy as np
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import LeaveOneOut
+from sklearn.metrics import matthews_corrcoef
+
+# 1. Load dataset
+df = pd.read_csv('data/experimental_156_clean.csv')
+
+# 2. Extract ESM-2 embeddings (or load from Zenodo)
+# X = np.load('X_exp_156_esm.npy')  # from Zenodo
+# y = np.load('y_exp_156.npy')
+
+# 3. LOOCV evaluation
+loo = LeaveOneOut()
+y_true, y_pred = [], []
+for train_idx, test_idx in loo.split(X):
+    sc = StandardScaler()
+    X_tr = sc.fit_transform(X[train_idx])
+    X_te = sc.transform(X[test_idx])
+    clf = LogisticRegression(C=0.1, class_weight='balanced', max_iter=2000)
+    clf.fit(X_tr, y[train_idx])
+    y_true.append(y[test_idx][0])
+    y_pred.append(clf.predict(X_te)[0])
+
+mcc = matthews_corrcoef(y_true, y_pred)
+# Expected: MCC ≈ 0.168
+```
+
+---
+
+## Citation
+
+If you use TargetTrackHisTag in your research, please cite:
+
+```
+Ashraf MU, Muazzam, Khan RH. TargetTrackHisTag: an experimental benchmark reveals
+a significant but modest sequence-encoded signal for His-tag placement preference.
+Bioinformatics Advances, 2026. [DOI to be added upon publication]
+```
+
+---
+
+## Data Availability
+
+- **This repository:** Dataset, audit results, LOOCV predictions, manuscript source
+- **Zenodo (DOI: [ZENODO_DOI]):** ESM-2 embeddings, labels, full analysis outputs
+
+---
 
 ## License
 
-MIT License — see [LICENSE](LICENSE) for details.
+Dataset and results: CC BY 4.0  
+Code: MIT
+
+---
 
 ## Contact
 
-Muhammad Uzair Ashraf — Interdisciplinary Biotechnology Unit, Aligarh Muslim University
+Rizwan Hasan Khan — rhkhan.cb@amu.ac.in  
+Interdisciplinary Biotechnology Unit, Aligarh Muslim University, Aligarh 202002, India

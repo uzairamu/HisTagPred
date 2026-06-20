@@ -1,0 +1,6 @@
+*.npy
+*.pkl
+*.pt
+*.pdb
+__pycache__/
+.DS_Store
